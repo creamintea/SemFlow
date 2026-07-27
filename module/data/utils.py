@@ -15,7 +15,7 @@ def get_train_transforms(p: Dict[str, Any]) -> Callable:
         size = size//10
         real_size = (size,2*size)
         crop_mode = None
-    print('size:',real_size)
+    print('图像尺寸：', real_size)
     transforms = T.Compose([
         RandomHorizontalFlip() if p.flip else nn.Identity(),
         CropResize(real_size, crop_mode=crop_mode),
@@ -30,7 +30,7 @@ def get_val_transforms(p: Dict) -> Callable:
     else:
         size = size//10
         real_size = (size,2*size)
-    print('size:',real_size)
+    print('图像尺寸：', real_size)
     transforms = T.Compose([
         CropResize(real_size, crop_mode=None),
         ToTensor(),
@@ -39,45 +39,16 @@ def get_val_transforms(p: Dict) -> Callable:
 
 def get_dataset(
     split: Any,
-    db_name = 'coco',
+    db_name = 'ctp',
     transform: Optional[Callable] = None,
-    cfg_palette = None,
 ):
 
-    args_palette = (cfg_palette.k,cfg_palette.s)
-
-    if db_name=='celeb':
-        from .celeb import Celeb
-        dataset = Celeb(
-            data_root='dataset/celebAmask',
-            split=split,
-            transform=transform,
-            args_palette=args_palette
-        )
-    
-    elif db_name=='city':
-        from .cityscapes import Cityscapes
-        dataset = Cityscapes(
-            data_root='dataset/cityscapes',
-            split=split,
-            transform=transform,
-            size=1024,
-            args_palette=args_palette
-        )
-
-    elif db_name=='cocostuff':
-        from .cocostuff import COCOStuff
-        dataset = COCOStuff(
-            data_root='dataset/cocostuff',
-            split=split,
-            transform=transform,
-            args_palette=args_palette
-        )
+    if db_name=='ctp':
+        from .ctp_dataset import CTPDataset
+        dataset = CTPDataset(split=split, transform=transform)
 
     else:
         raise NotImplementedError()
 
     return dataset
-
-
 

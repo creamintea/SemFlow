@@ -1,5 +1,6 @@
 import torch
 
+# 正向推演，即从 CTP 生成掩码
 @torch.no_grad()
 def pipeline_rf(timesteps,unet,z0,encoder_hidden_states,blank_feat,guidance_scale,unet_added_conditions=None):
     cls_free = guidance_scale>1.0
@@ -22,7 +23,7 @@ def pipeline_rf(timesteps,unet,z0,encoder_hidden_states,blank_feat,guidance_scal
         all_latents.append(latents)
     return latents, all_latents
 
-
+# 逆向推演，即从掩码生成 CTP
 @torch.no_grad()
 def pipeline_rf_reverse(timesteps,unet,z1,encoder_hidden_states,blank_feat,guidance_scale,unet_added_conditions=None):
     cls_free = guidance_scale>1.0

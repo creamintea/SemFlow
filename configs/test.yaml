@@ -1,0 +1,81 @@
+pretrain_model: "dataset/pretrain/stable-diffusion-v1-5"
+db: ctp
+
+valstep: 25
+
+cfg:
+   guide: 1  # 设为 1 表示关闭无分类器引导
+
+env:
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_01
+   seed: 123
+   mixed_precision: "bf16"   # 使用脑浮点16位格式训练，可节省显存并提高速度，适用于支持该格式的显卡
+   deepspeed: False
+   allow_tf32: False  # 是否允许使用张量浮点32位格式，以在保持较高精度的同时加速训练
+   scale_lr: False
+   use_xformers: False
+   max_grad_norm: 1.0
+   checkpointing_steps: 20000
+   checkpoints_total_limit: null
+   size: 256
+   val_iter: 10000
+
+adapter:
+   hidden_channels: 64
+   weight_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/adapter_stage1/checkpoint-100000/adapter_weights.pt
+
+test:
+   checkpoint_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2/checkpoint-100000
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2/checkpoint-100000
+
+   # true：加载 checkpoint 中的 UNet 和 VAE
+   # false：只加载 checkpoint 中的 UNet，VAE 使用 Stable Diffusion 预训练权重
+   load_vae_from_checkpoint: true
+
+   # null 时默认读取 checkpoint/model_1.safetensors
+   vae_weights_path: null
+
+   num_inference_steps: 25
+   mask_threshold: 0.5
+   max_batches: null
+   save_ctp_arrays: true
+   save_ctp_images: true
+
+adapter_test:
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/adapter_stage1/checkpoint-100000/test_results
+   max_batches: null
+   save_ctp_arrays: true
+   save_ctp_images: true
+
+mask_vae_test:
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/mask_vae_test
+   max_batches: 250
+   mask_threshold: 0.5
+   dtype: float32
+   save_images: true
+
+flow_diagnosis:
+   checkpoint_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/flow_stage2/checkpoint-100000
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/flow_diagnosis_test/checkpoint-100000
+   dataset_split: val
+   max_batches: null
+   mask_threshold: 0.5
+   fixed_t_values: [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95, 0.99, 0.995, 0.999, 1] 
+   rollout_steps: [1, 5, 10, 25, 50]
+   run_teacher_forced: true
+   run_rollout: true
+
+eval:
+   mask_th: 0.5
+   batch_size: 1
+   num_workers: 8
+   max_vis_batches: 4
+
+transformation:
+   flip: True
+   crop: random
+
+
+
+
+

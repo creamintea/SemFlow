@@ -1,0 +1,87 @@
+pretrain_model: "dataset/pretrain/stable-diffusion-v1-5"
+resume_from_checkpoint: null  # 改为 latest 时，会从输出目录的最新检查点恢复训练；null 表示从头训练
+db: ctp
+
+valstep: 25
+
+cfg:
+   guide: 1  # 设为 1 表示关闭无分类器引导
+   continus: true
+
+env:
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_01
+   logging_dir: 'log'
+   report_to: 'tensorboard'
+   gradient_accumulation_steps: 2
+   seed: 123
+   mixed_precision: "bf16"   # 使用脑浮点16位格式训练，可节省显存并提高速度，适用于支持该格式的显卡
+   deepspeed: False
+   allow_tf32: False  # 是否允许使用张量浮点32位格式，以在保持较高精度的同时加速训练
+   scale_lr: False
+   use_xformers: False
+   max_train_steps: 100000
+   max_grad_norm: 1.0
+   checkpointing_steps: 20000
+   checkpoints_total_limit: null
+   size: 256
+   val_iter: 10000
+
+adapter:
+   hidden_channels: 64
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/adapter_stage1
+   weight_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/adapter_stage1/checkpoint-100000/adapter_weights.pt
+
+train:
+   # 联合训练显存占用较高，默认每张卡只放1个样本。
+   batch_size: 1
+   num_workers: 8
+   gradient_checkpointing: True
+
+flow: #数据嵌在通道层中
+   train_vae: true
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/flow_stage2
+   vae_output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2
+
+batch: #数据嵌在batch层中
+   train_vae: true
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/flow_stage2
+   vae_output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2
+   
+loss:
+   adapter_l1: 1.0
+   adapter_l2: 0.5
+   flow: 1.0
+   dice: 1.0
+   focal: 1.0
+   focal_alpha: 0.75
+   focal_gamma: 2.0
+   ctp_reconstruction: 1.0
+
+eval:
+   mask_th: 0.5
+   batch_size: 1
+   num_workers: 8
+   max_vis_batches: 4
+   
+optim:
+   name: adamw
+   lr: 1.0e-4   #学习率，表示步子迈多大
+   vae_lr: 1.0e-5  # 联合训练时 VAE 使用更小的学习率
+   beta1: 0.9
+   beta2: 0.999
+   weight_decay: 0.01
+   epsilon: 1.0e-08
+
+
+lr_scheduler:
+   name: constant_with_warmup 
+   warmup_steps: 20000   #预热步数，训练开始时学习率从0逐渐增加到设定的学习率（lr），在预热阶段结束后保持恒定，直到训练结束
+
+transformation:
+   flip: True
+   crop: random
+
+
+
+
+

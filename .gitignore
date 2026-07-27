@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Pretrained model weights
+dataset/pretrain/
+
+# Common checkpoints
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+
+# Model weights
+*.bin
+
+# Generated results
+demo/vis/
+fist_trian_loss/

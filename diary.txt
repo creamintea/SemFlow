@@ -1,0 +1,14 @@
+7月1日会议记录：
+
+训练的loss不全，一共有四个loss，一个是潜空间的loss（正逆过程各一个），一个是masktoctp后和ctp真值图的loss，一个是ctptomask生成的mask和真实图之间的dice或BCE（看看原文用的是什么）
+逆向过程训练：输入分割图的真值图（在每一套batch中，此图和生成过程的输出对应），mask的encoder和ctp的encoder保持一致，decoder和ctp也保持一致。
+把数据从输入到通道层，到输入到batch层，变成8*15，最外层的通道数变为1，即为encoder和decoder的最外层的通道数均为1
+重建结果看PSNR
+
+一起训练分割和生成
+看看数据放在C上更好，B上更好，还是前后各加一层encoder和decoder（15to3 3to15）更好
+
+
+侧枝图里面和外面的TIC曲线有无区别
+
+要关注
