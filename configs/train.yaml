@@ -1,5 +1,5 @@
 pretrain_model: "dataset/pretrain/stable-diffusion-v1-5"
-resume_from_checkpoint: null  # 改为 latest 时，会从输出目录的最新检查点恢复训练；null 表示从头训练
+resume_from_checkpoint: latest  # 改为 latest 时，会从输出目录的最新检查点恢复训练；null 表示从头训练
 db: ctp
 
 valstep: 25
@@ -12,19 +12,19 @@ env:
    output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_01
    logging_dir: 'log'
    report_to: 'tensorboard'
-   gradient_accumulation_steps: 2
+   gradient_accumulation_steps: 1
    seed: 123
    mixed_precision: "bf16"   # 使用脑浮点16位格式训练，可节省显存并提高速度，适用于支持该格式的显卡
    deepspeed: False
    allow_tf32: False  # 是否允许使用张量浮点32位格式，以在保持较高精度的同时加速训练
    scale_lr: False
    use_xformers: False
-   max_train_steps: 100000
+   max_train_steps: 320000
    max_grad_norm: 1.0
-   checkpointing_steps: 20000
+   checkpointing_steps: 80000
    checkpoints_total_limit: null
    size: 256
-   val_iter: 10000
+   val_iter: 40000
 
 adapter:
    hidden_channels: 64
@@ -33,14 +33,35 @@ adapter:
 
 train:
    # 联合训练显存占用较高，默认每张卡只放1个样本。
-   batch_size: 1
+   batch_size: 8
    num_workers: 8
    gradient_checkpointing: True
 
 flow: #数据嵌在通道层中
-   train_vae: true
-   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/flow_stage2
-   vae_output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2
+   train_vae: FALSE
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_04/flow_stage2
+   vae_output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_04/flow_vae_stage2
+
+# semrf_vae2.py：双 VAE 方案。
+# Mask VAE 全冻结；CTP VAE 直接接收/输出15通道，
+# 只训练 encoder.conv_in 与 decoder.conv_out。
+vae2:
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/experiment_10/flow_vae2
+   mask_vae_path: dataset/pretrain/stable-diffusion-v1-5/vae
+   ctp_vae_path: dataset/pretrain/stable-diffusion-v1-5/vae
+   ctp_channels: 15
+
+# semrf_vae2_o_para.py：将参数图/侧枝图编码为图像 Token，
+# 与空文本 Token 拼接后通过 UNet Cross-Attention 提供条件。
+para:
+   # null 时使用 env.output_dir，避免覆盖原训练目录。
+   output_dir: null
+   # 数据格式固定为 img8.npy[1:8]，并从 [0,1] 映射到 [-1,1]。
+   # 8x8 产生64个图像条件 Token，每个 Token 为768维。
+   token_grid_size: 8
+   base_channels: 32
+   condition_dropout_prob: 0.1
+   condition_lr: 1.0e-4
 
 batch: #数据嵌在batch层中
    train_vae: true
@@ -51,22 +72,30 @@ loss:
    adapter_l1: 1.0
    adapter_l2: 0.5
    flow: 1.0
-   dice: 1.0
-   focal: 1.0
+   dice: 0.0
+   focal: 0.0
    focal_alpha: 0.75
    focal_gamma: 2.0
-   ctp_reconstruction: 1.0
+   ctp_reconstruction: 0.0
+   # 以下两项供 semrf_vae2.py 使用：自重建采用 L2/MSE，
+   # Mask->CTP 重建仍采用 L1。
+   ctp_self_reconstruction: 1.0
+   mask_to_ctp_reconstruction: 0.0  #和ctp_reconstruction表示同一个L1损失
 
 eval:
    mask_th: 0.5
    batch_size: 1
    num_workers: 8
    max_vis_batches: 4
+   # null 表示每次验证使用完整验证集；也可设为较小整数做快速验证。
+   max_val_batches: null
    
 optim:
    name: adamw
    lr: 1.0e-4   #学习率，表示步子迈多大
    vae_lr: 1.0e-5  # 联合训练时 VAE 使用更小的学习率
+   # semrf_vae2.py 只把这个学习率用于 CTP VAE 的两个最外层。
+   ctp_vae_lr: 1.0e-4
    beta1: 0.9
    beta2: 0.999
    weight_decay: 0.01
@@ -80,8 +109,4 @@ lr_scheduler:
 transformation:
    flip: True
    crop: random
-
-
-
-
 

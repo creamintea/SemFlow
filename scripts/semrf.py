@@ -23,7 +23,7 @@ from module.data.hook import resume_training_checkpoint, save_training_checkpoin
 from module.data.load_dataset import pr_train_dataloader, pr_val_dataloader
 from module.data.prepare_text import sd_null_condition
 from module.pipe.val import valrf
-from module.data.matrix import soft_dice_loss, binary_focal_loss, calculate_binary_dice, calculate_psnr
+from module.data.metrics import soft_dice_loss, binary_focal_loss, calculate_binary_dice, calculate_psnr
 logger = get_logger(__name__)
 
 

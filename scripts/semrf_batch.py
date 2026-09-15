@@ -26,7 +26,7 @@ from module.data.hook import (
     resume_training_checkpoint,
     save_training_checkpoint,
 )
-from module.data.matrix import (
+from module.data.metrics import (
     binary_focal_loss,
     calculate_binary_dice,
     calculate_psnr,

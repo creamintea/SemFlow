@@ -3,8 +3,14 @@ __pycache__/
 *.py[cod]
 
 # Pretrained model weights
-dataset/pretrain/
-
+dataset/
+output/
+tmp/
+.codex_tmp/
+.agents/
+finding/
+finding_new/
+SemFlow_八周实习日记.docx
 # Common checkpoints
 *.ckpt
 *.pth

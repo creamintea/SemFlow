@@ -2,7 +2,6 @@ import torch
 import torch.nn.functional as F
 
 
-
 def soft_dice_loss(prediction, target, epsilon=1e-6):
     """
     Soft Dice loss。
@@ -26,7 +25,7 @@ def soft_dice_loss(prediction, target, epsilon=1e-6):
     return 1.0 - dice.mean()
 
 
-def binary_focal_loss(prediction, target, alpha=0.25, gamma=2.0, epsilon=1e-6):
+def binary_focal_loss(prediction, target, alpha=0.75, gamma=2.0, epsilon=1e-6):
     """
     基于概率的二分类 Focal loss。
 
@@ -43,25 +42,18 @@ def binary_focal_loss(prediction, target, alpha=0.25, gamma=2.0, epsilon=1e-6):
     # 不使用 F.binary_cross_entropy，
     # 避免它在 autocast 环境中直接报错。
     bce = -(target * torch.log(prediction) + (1.0 - target) * torch.log1p(-prediction))
-
     probability_t = prediction * target + (1.0 - prediction) * (1.0 - target)
-
     alpha_t = alpha * target + (1.0 - alpha) * (1.0 - target)
-
     focal_weight = alpha_t * (1.0 - probability_t).pow(gamma)
-
     return (focal_weight * bce).mean()
 
 
 @torch.no_grad()
-def calculate_binary_dice(prediction, target, threshold=0.5, epsilon=1e-6):
+def calculate_binary_dice(prediction, target, threshold=0.5, epsilon=1e-6, reduction="mean"):
     """
     计算二值 Dice 指标，只用于训练日志，
     不参与梯度反向传播。
     """
-    prediction = (prediction >= threshold).float()
-    target = (target >= 0.5).float()
-
     prediction = prediction.flatten(1)
     target = target.flatten(1)
 
@@ -69,7 +61,11 @@ def calculate_binary_dice(prediction, target, threshold=0.5, epsilon=1e-6):
     denominator = prediction.sum(dim=1) + target.sum(dim=1)
     dice = (2.0 * intersection + epsilon) / (denominator + epsilon)
 
-    return dice.mean()
+    if reduction == "none":
+        return dice
+    if reduction == "mean":
+        return dice.mean()
+    raise ValueError(f"不支持的reduction：{reduction}")
 
 
 @torch.no_grad()

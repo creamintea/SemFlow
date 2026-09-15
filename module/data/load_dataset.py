@@ -51,3 +51,24 @@ def pr_val_dataloader(p):
     )
 
     return val_dataloader
+
+
+def pr_test_dataloader(p):
+    transforms_val = get_val_transforms(p.transformation)
+    test_dataset = get_dataset(
+        split='test',
+        db_name=p.db,
+        transform=transforms_val
+    )
+
+    test_dataloader = DataLoader(
+        test_dataset,
+        batch_size=p.eval.batch_size,
+        num_workers=p.eval.num_workers,
+        shuffle=False,
+        pin_memory=True,
+        drop_last=False,
+        collate_fn=collate_fn,
+    )
+
+    return test_dataloader

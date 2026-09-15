@@ -24,6 +24,50 @@ adapter:
    hidden_channels: 64
    weight_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_02/adapter_stage1/checkpoint-100000/adapter_weights.pt
 
+test_vae2:
+   vae_path: dataset/pretrain/stable-diffusion-v1-5/vae
+   checkpoint_path: /mnt/ssd5/qianzongxin/SemFlow/output/experiment_11/checkpoint-320000
+   output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/experiment_11/test_results/checkpoint-320000
+   # val 用于选择 checkpoint；test 用于最终报告。
+   dataset_split: test
+   inference_steps: 25
+   max_batches: null
+   save_predictions: true
+   save_ctp_arrays: true
+   save_ctp_images: true
+
+# semrf_vae2_o_para.py 对应的参数图/侧枝图交叉注意力推理。
+test_vae2_para:
+   vae_path: dataset/pretrain/stable-diffusion-v1-5/vae
+   # 必须指向包含 model、model_1、model_2.safetensors 的 checkpoint。
+   checkpoint_path: null
+   output_dir: null
+   # val 用于选择 checkpoint；test 用于最终报告。
+   dataset_split: test
+   inference_steps: 25
+   max_batches: null
+   # 旧 checkpoint 未记录编码器结构时使用下面两个值。
+   token_grid_size: 8
+   base_channels: 32
+   save_predictions: true
+   save_ctp_arrays: true
+   save_ctp_images: true
+
+threshold_search:
+   # null 时复用 test_vae2.checkpoint_path。
+   checkpoint_path: null
+   # null 时自动读取 checkpoint/model_1.safetensors。
+   ctp_vae_weights_path: null
+   output_dir: null
+   # 必须与最终测试采用的推理步数保持一致。
+   num_inference_steps: 25
+   threshold_min: 0.01
+   threshold_max: 0.99
+   num_thresholds: 99
+   # 分块扫描阈值，数值越小显存占用越低。
+   threshold_chunk_size: 16
+   max_batches: null
+
 test:
    checkpoint_path: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2/checkpoint-100000
    output_dir: /mnt/ssd5/qianzongxin/SemFlow/output/ctp_experiment_03/flow_vae_stage2/checkpoint-100000

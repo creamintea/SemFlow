@@ -23,11 +23,14 @@ class CTPDataset(Dataset):
         self.split = split
 
         if split == 'train':
-            self.time_dir = "/mnt/hdd1/zhaoxinyi/DATA_new/ctp_prepare/random_imagesTr/"
-            self.non_time_dir = "/mnt/hdd1/zhaoxinyi/DATA_new/Data2D_256_8c_random/imagesTr/"
+            self.time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/train_time/"
+            self.non_time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/train_non_time/"
+        elif split == 'val':
+            self.time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/val_time/"
+            self.non_time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/val_non_time/"
         else:
-            self.time_dir = "/mnt/hdd1/zhaoxinyi/DATA_new/ctp_prepare/random_imagesTs/"
-            self.non_time_dir = "/mnt/hdd1/zhaoxinyi/DATA_new/Data2D_256_8c_random/imagesTs/"
+            self.time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/test_time/"
+            self.non_time_dir = "/mnt/ssd5/qianzongxin/SemFlow/dataset/SemFlow_Dataset/test_non_time/"
             
         self.patient_dirs = sorted([d for d in os.listdir(self.time_dir) if os.path.isdir(os.path.join(self.time_dir, d))])
 

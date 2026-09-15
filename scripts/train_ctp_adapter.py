@@ -19,7 +19,7 @@ from tqdm.auto import tqdm
 
 from module.data.ctp_adapter import CTPInputAdapter,CTPOutputAdapter
 from module.data.load_dataset import pr_train_dataloader, pr_val_dataloader
-from module.data.matrix import calculate_psnr
+from module.data.metrics import calculate_psnr
 from module.data.hook import export_adapter_weights, get_raw_model
 
 logger = get_logger(__name__)
